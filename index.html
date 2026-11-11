@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DONKI/SEP – Partículas Solares Energéticas</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:960px;margin:2rem auto;padding:0 1rem;background:#0b1020;color:#e8ecf5}
+a{color:#7fb2ff} table{width:100%;border-collapse:collapse} th,td{padding:.5rem;border-bottom:1px solid #26304d;text-align:left}
+select,input{padding:.4rem;margin:0 .5rem .5rem 0} .cards{display:flex;gap:1rem;margin:1rem 0}
+.card{background:#151c33;padding:1rem;border-radius:8px;flex:1}
+</style></head><body>
+<h1>☀️ Partículas Solares Energéticas (DONKI/SEP)</h1>
+<p id="update">Carregando última atualização…</p>
+<div class="cards"><div class="card">Eventos: <b id="total">–</b></div><div class="card">Exibidos: <b id="shown">–</b></div></div>
+<label>Ano: <select id="ano"><option value="">Todos</option></select></label>
+<label>Instrumento: <input id="inst" placeholder="ex: GOES"></label>
+<table><thead><tr><th>ID</th><th>Data do evento</th><th>Instrumentos</th><th>Link</th></tr></thead><tbody id="rows"></tbody></table>
+<script>
+const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";   // troque
+const ANON_KEY = "SUA_PUBLISHABLE_KEY";                    // só a publishable/anon!
+const H = {apikey: ANON_KEY, Authorization: "Bearer " + ANON_KEY};
+function escapeHtml(v){return String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+let data = [];
+async function load(){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/sep_events?select=sep_id,event_time,instruments,link&order=event_time.desc&limit=1000`,{headers:H});
+  data = await r.json();
+  const anos = [...new Set(data.map(d=>d.event_time.slice(0,4)))].sort().reverse();
+  document.getElementById("ano").innerHTML = '<option value="">Todos</option>' + anos.map(a=>`<option>${escapeHtml(a)}</option>`).join("");
+  const u = await fetch(`${SUPABASE_URL}/rest/v1/execucoes?select=executado_em,status&order=executado_em.desc&limit=1`,{headers:H}).then(r=>r.json());
+  document.getElementById("update").textContent = u[0] ? `Última atualização: ${new Date(u[0].executado_em).toLocaleString("pt-BR")} (${u[0].status})` : "Sem execuções registradas";
+  document.getElementById("total").textContent = data.length;
+  render();
+}
+function render(){
+  const ano = document.getElementById("ano").value, inst = document.getElementById("inst").value.toLowerCase();
+  const f = data.filter(d => (!ano || d.event_time.startsWith(ano)) && (!inst || (d.instruments||[]).join(" ").toLowerCase().includes(inst)));
+  document.getElementById("shown").textContent = f.length;
+  document.getElementById("rows").innerHTML = f.map(d=>`<tr><td>${escapeHtml(d.sep_id)}</td><td>${escapeHtml(new Date(d.event_time).toLocaleString("pt-BR"))}</td><td>${escapeHtml((d.instruments||[]).join(", "))}</td><td>${d.link && /^https?:\/\//.test(d.link) ? `<a href="${escapeHtml(d.link)}" target="_blank" rel="noopener">ver</a>` : ""}</td></tr>`).join("");
+}
+document.getElementById("ano").onchange = render; document.getElementById("inst").oninput = render;
+load().catch(e => document.getElementById("update").textContent = "Erro ao carregar dados.");
+</script></body></html>
