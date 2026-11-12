@@ -16,11 +16,20 @@ def log_execucao(proc, lotes, erros, status, msg=""):
               "status": status, "mensagem": msg[:500]}, timeout=30)
 
 def fetch():
-    fim = date.today(); ini = fim - timedelta(days=DAYS)
-    r = requests.get("https://api.nasa.gov/DONKI/SEP",
-        params={"startDate": ini, "endDate": fim, "api_key": NASA_KEY}, timeout=60)
-    r.raise_for_status()
-    return r.json() or []
+    fim = date.today()
+    ini = fim - timedelta(days=DAYS)
+    eventos = []
+    atual = ini
+    while atual < fim:
+        fim_janela = min(atual + timedelta(days=29), fim)
+        r = requests.get("https://api.nasa.gov/DONKI/SEP",
+            params={"startDate": atual.isoformat(), "endDate": fim_janela.isoformat(),
+                    "api_key": NASA_KEY}, timeout=60)
+        if not r.ok:
+            raise RuntimeError(f"{r.status_code}: {r.text[:300]}")
+        eventos.extend(r.json() or [])
+        atual = fim_janela + timedelta(days=1)
+    return eventos
 
 def normalize(e):
     return {
