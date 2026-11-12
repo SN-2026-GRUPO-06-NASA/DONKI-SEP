@@ -15,8 +15,8 @@ select,input{padding:.4rem;margin:0 .5rem .5rem 0} .cards{display:flex;gap:1rem;
 <label>Instrumento: <input id="inst" placeholder="ex: GOES"></label>
 <table><thead><tr><th>ID</th><th>Data do evento</th><th>Instrumentos</th><th>Link</th></tr></thead><tbody id="rows"></tbody></table>
 <script>
-const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";   // troque
-const ANON_KEY = "SUA_PUBLISHABLE_KEY";                    // só a publishable/anon!
+const SUPABASE_URL = "https://irctgazwxnpswlsmhlpo.supabase.co";   // troque
+const ANON_KEY = "sb_publishable_BCKho8oZBm-ZTblLJvGhig_U8EeTIZl";                    // só a publishable/anon!
 const H = {apikey: ANON_KEY, Authorization: "Bearer " + ANON_KEY};
 function escapeHtml(v){return String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 let data = [];
